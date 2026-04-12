@@ -1,0 +1,5 @@
+{
+  "regions": ["iad"],
+  "buildCommand": "next build",
+  "outputDirectory": ".next"
+}

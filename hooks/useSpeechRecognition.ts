@@ -3,17 +3,18 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 type SpeechRecognitionStatus = 'ready' | 'listening' | 'processing' | 'not-supported';
 
 interface UseSpeechRecognitionReturn {
-  text: string;
   interimText: string;
   status: SpeechRecognitionStatus;
   error: string | null;
   startListening: () => void;
   stopListening: () => void;
-  resetText: () => void;
+  onFinalResult: (text: string) => void;
 }
 
-export function useSpeechRecognition(language: string = 'bn-BD'): UseSpeechRecognitionReturn {
-  const [text, setText] = useState('');
+export function useSpeechRecognition(
+  language: string = 'bn-BD',
+  onFinalResult: (text: string) => void
+): Omit<UseSpeechRecognitionReturn, 'onFinalResult'> {
   const [interimText, setInterimText] = useState('');
   const [status, setStatus] = useState<SpeechRecognitionStatus>('ready');
   const [error, setError] = useState<string | null>(null);
@@ -44,28 +45,18 @@ export function useSpeechRecognition(language: string = 'bn-BD'): UseSpeechRecog
 
     recognition.onresult = (event: any) => {
       let interimTranscript = '';
-      let finalTranscript = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
 
         if (event.results[i].isFinal) {
-          finalTranscript += transcript;
+          onFinalResult(transcript);
         } else {
           interimTranscript += transcript;
         }
       }
-
-      // Update final text
-      if (finalTranscript) {
-        setText((prev: string) => prev + (prev ? ' ' : '') + finalTranscript);
-        setInterimText(''); // Clear interim when final result arrives
-      }
       
-      // Update interim text for real-time display
-      if (interimTranscript) {
-        setInterimText(interimTranscript);
-      }
+      setInterimText(interimTranscript);
     };
 
     recognition.onerror = (event: any) => {
@@ -75,7 +66,7 @@ export function useSpeechRecognition(language: string = 'bn-BD'): UseSpeechRecog
 
     recognition.onend = () => {
       isListeningRef.current = false;
-      setInterimText(''); // Clear interim text when recognition ends
+      setInterimText('');
       setStatus('ready');
     };
 
@@ -86,11 +77,15 @@ export function useSpeechRecognition(language: string = 'bn-BD'): UseSpeechRecog
         recognitionRef.current.abort();
       }
     };
-  }, [language]);
+  }, [language, onFinalResult]);
 
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListeningRef.current) {
-      recognitionRef.current.start();
+      try {
+        recognitionRef.current.start();
+      } catch (e) {
+        console.error('Start listening error:', e);
+      }
     }
   }, []);
 
@@ -100,19 +95,11 @@ export function useSpeechRecognition(language: string = 'bn-BD'): UseSpeechRecog
     }
   }, []);
 
-  const resetText = useCallback(() => {
-    setText('');
-    setInterimText('');
-    setError(null);
-  }, []);
-
   return {
-    text,
     interimText,
-    status: status === 'not-supported' ? 'not-supported' : status,
+    status,
     error,
     startListening,
     stopListening,
-    resetText,
   };
 }

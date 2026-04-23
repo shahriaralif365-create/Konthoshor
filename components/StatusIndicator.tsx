@@ -3,24 +3,23 @@
 import { motion } from 'framer-motion';
 import { Mic, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
+import { translations, Language } from '@/lib/translations';
+
 interface StatusIndicatorProps {
   status: 'ready' | 'listening' | 'processing' | 'not-supported';
-  language?: 'bengali' | 'english' | 'arabic' | 'urdu';
+  language?: Language;
 }
 
-export function StatusIndicator({ status, language = 'english' }: StatusIndicatorProps) {
+export function StatusIndicator({ status, language = 'bengali' }: StatusIndicatorProps) {
+  const t = translations[language].status;
+  
   const getLabel = () => {
     switch(status) {
-      case 'ready':
-        return language === 'bengali' ? 'প্রস্তুত' : language === 'english' ? 'Ready' : language === 'arabic' ? 'جاهز' : 'تیار';
-      case 'listening':
-        return language === 'bengali' ? 'শুনছি' : language === 'english' ? 'Listening' : language === 'arabic' ? 'استماع' : 'سن رہے ہیں';
-      case 'processing':
-        return language === 'bengali' ? 'প্রক্রিয়া করছি' : language === 'english' ? 'Processing' : language === 'arabic' ? 'المعالجة' : 'پروسیس کر رہے ہیں';
-      case 'not-supported':
-        return language === 'bengali' ? 'বিরত' : language === 'english' ? 'Not Supported' : language === 'arabic' ? 'غير مدعوم' : 'تعاون یافتہ نہیں';
-      default:
-        return 'Ready';
+      case 'ready': return t.ready;
+      case 'listening': return t.listening;
+      case 'processing': return t.processing;
+      case 'not-supported': return t.notSupported;
+      default: return t.ready;
     }
   };
 
@@ -28,30 +27,26 @@ export function StatusIndicator({ status, language = 'english' }: StatusIndicato
     ready: {
       icon: CheckCircle2,
       color: 'text-emerald-400',
-      bgColor: 'bg-emerald-400/10',
       dotColor: 'bg-emerald-400',
-      borderColor: 'border-emerald-400/30',
+      glowColor: 'shadow-emerald-500/20',
     },
     listening: {
       icon: Mic,
-      color: 'text-sky-400',
-      bgColor: 'bg-sky-400/10',
-      dotColor: 'bg-sky-400',
-      borderColor: 'border-sky-400/30',
+      color: 'text-primary',
+      dotColor: 'bg-primary',
+      glowColor: 'shadow-primary/20',
     },
     processing: {
       icon: Loader2,
-      color: 'text-cyan-400',
-      bgColor: 'bg-cyan-400/10',
-      dotColor: 'bg-cyan-400',
-      borderColor: 'border-cyan-400/30',
+      color: 'text-accent',
+      dotColor: 'bg-accent',
+      glowColor: 'shadow-accent/20',
     },
     'not-supported': {
       icon: AlertCircle,
-      color: 'text-amber-400',
-      bgColor: 'bg-amber-400/10',
-      dotColor: 'bg-amber-400',
-      borderColor: 'border-amber-400/30',
+      color: 'text-red-400',
+      dotColor: 'bg-red-400',
+      glowColor: 'shadow-red-500/20',
     },
   };
 
@@ -59,29 +54,23 @@ export function StatusIndicator({ status, language = 'english' }: StatusIndicato
 
   return (
     <motion.div 
-      className={`flex items-center gap-3 px-4 py-2 rounded-full ${config.bgColor} border ${config.borderColor} backdrop-blur-sm`}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.2 }}
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`flex items-center gap-2.5 px-4 py-2 rounded-full glass-card border border-white/5 ${config.glowColor} shadow-lg`}
     >
-      <div className="relative">
-        <div className={`w-2.5 h-2.5 rounded-full ${config.dotColor}`} />
-        {status === 'listening' && (
+      <div className="relative flex items-center justify-center">
+        <div className={`w-2 h-2 rounded-full ${config.dotColor} relative z-10`} />
+        {(status === 'listening' || status === 'processing') && (
           <motion.div
-            className={`absolute inset-0 w-2.5 h-2.5 rounded-full ${config.dotColor}`}
-            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-        )}
-        {status === 'processing' && (
-          <motion.div
-            className={`absolute inset-0 w-2.5 h-2.5 rounded-full ${config.dotColor}`}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, linear: true }}
+            className={`absolute inset-0 w-2 h-2 rounded-full ${config.dotColor}`}
+            animate={{ scale: [1, 2.5, 1], opacity: [0.8, 0, 0.8] }}
+            transition={{ duration: 2, repeat: Infinity }}
           />
         )}
       </div>
-      <span className={`text-sm font-semibold ${config.color}`}>{getLabel()}</span>
+      <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${config.color} bengali-text`}>
+        {getLabel()}
+      </span>
     </motion.div>
   );
 }

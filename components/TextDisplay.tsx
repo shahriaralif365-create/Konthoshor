@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TextDisplayProps {
   text: string;
@@ -10,65 +10,53 @@ interface TextDisplayProps {
   language?: 'bengali' | 'english' | 'arabic' | 'urdu';
 }
 
-// Arabic diacritics - No longer needed
-// const HARAKAT = { ... }
-
 export function TextDisplay({ text, interimText, onChange, language = 'bengali' }: TextDisplayProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isRTL = language === 'arabic' || language === 'urdu';
 
-  // Auto-scroll to bottom and ensure text sync
   useEffect(() => {
     if (textareaRef.current) {
-      // Ensure textarea value is synced
-      textareaRef.current.value = text;
       textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
     }
-  }, [text]);
-
-  // Force clear the textarea when text becomes empty
-  useEffect(() => {
-    if (text === '' && textareaRef.current) {
-      textareaRef.current.value = '';
-      textareaRef.current.textContent = '';
-    }
-  }, [text]);
-
-  // Track text changes
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value);
-  };
+  }, [text, interimText]);
 
   return (
-    <motion.div
-      className="w-full"
-      initial={{ opacity: 0, y: 5 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15 }}
-    >
-      <textarea
-        ref={textareaRef}
-        value={text}
-        onChange={handleTextChange}
-        className="w-full h-64 bg-slate-900/60 backdrop-blur-sm px-2 py-4 text-base leading-relaxed border border-sky-400/30 focus:border-sky-400/60 focus:outline-none focus:ring-2 focus:ring-sky-400/20 transition-all duration-300 resize-none text-slate-100 placeholder-slate-500/50 rounded-xl font-medium"
-        style={language === 'arabic' || language === 'urdu' ? { direction: 'rtl', textAlign: 'right' } : { textAlign: 'left' }}
-        placeholder={
-          language === 'arabic'
-            ? 'اكتب أو تحدث هنا...'
-            : language === 'urdu'
-            ? 'اپنی آواز یہاں لکھیں اور ترمیم کریں...'
-            : language === 'english'
-            ? 'View and edit your voice here...'
-            : 'আপনার কণ্ঠস্বর দেখুন এবং সম্পাদনা করুন...'
-        }
-      />
-      {interimText && (
-        <div 
-          className="mt-2 p-3 bg-sky-500/10 border border-sky-400/30 text-base text-sky-300/80 animate-pulse rounded-lg w-full backdrop-blur-sm"
-          style={language === 'arabic' || language === 'urdu' ? { direction: 'rtl', textAlign: 'right'} : { textAlign: 'left' }}
-        >
-          {interimText}
-        </div>
-      )}
-    </motion.div>
+    <div className="relative w-full h-full flex flex-col group">
+      <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition duration-500" />
+      <div className="relative flex-1 flex flex-col bg-slate-900/40 rounded-2xl border border-white/5 overflow-hidden transition-all duration-300 group-hover:border-white/10 group-focus-within:border-primary/30 group-focus-within:bg-slate-900/60 shadow-2xl min-h-[200px] sm:min-h-0">
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={
+            language === 'arabic'
+              ? 'راجع الكلمات التي ذكرتها هنا وقم بتحريرها...'
+              : language === 'urdu'
+                ? 'اپنے کہے ہوئے الفاظ یہاں دیکھیں اور ان میں ترمیم کریں...'
+                : language === 'english'
+                  ? 'Review and edit your spoken words here...'
+                  : 'আপনার বলা কথাগুলো এখানে দেখুন এবং প্রয়োজনে তা সম্পাদনা করুন...'
+          }
+          className={`w-full h-full p-5 sm:p-7 bg-transparent text-white text-lg sm:text-xl resize-none focus:outline-none custom-scrollbar bengali-text placeholder:text-slate-600 leading-relaxed ${isRTL ? 'text-right' : 'text-left'}`}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        />
+
+        {/* Interim Text Overlay */}
+        <AnimatePresence>
+          {interimText && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className={`absolute bottom-6 ${isRTL ? 'right-6 left-6 text-right' : 'left-6 right-6 text-left'} p-4 rounded-xl bg-primary/10 border border-primary/20 text-base text-primary bengali-text pointer-events-none shadow-lg backdrop-blur-md`}
+              style={{ direction: isRTL ? 'rtl' : 'ltr' }}
+            >
+              <span className="inline-block animate-pulse mr-2 text-xs">●</span>
+              {interimText}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 }

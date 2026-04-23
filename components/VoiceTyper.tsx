@@ -1,41 +1,83 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { StatusIndicator } from './StatusIndicator';
 import { MicButton } from './MicButton';
 import { TextDisplay } from './TextDisplay';
 import { ControlBar } from './ControlBar';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useTextStorage } from '@/hooks/useTextStorage';
+import { translations, Language } from '@/lib/translations';
 
 interface VoiceTyperProps {
-  language?: 'bengali' | 'english' | 'arabic' | 'urdu';
-  onLanguageChange?: (language: 'bengali' | 'english' | 'arabic' | 'urdu') => void;
+  language?: Language;
+  onLanguageChange?: (language: Language) => void;
 }
+
+const LANGUAGES = [
+  { id: 'bengali', label: 'বাংলা', code: 'bn-BD' },
+  { id: 'english', label: 'English', code: 'en-US' },
+  { id: 'arabic', label: 'العربية', code: 'ar-SA' },
+  { id: 'urdu', label: 'اردو', code: 'ur-PK' },
+] as const;
 
 export function VoiceTyper({ language: externalLanguage, onLanguageChange }: VoiceTyperProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [internalLanguage, setInternalLanguage] = useState<'bengali' | 'english' | 'arabic' | 'urdu'>('bengali');
+  const [internalLanguage, setInternalLanguage] = useState<Language>('bengali');
   
   const language = externalLanguage || internalLanguage;
+  const t = translations[language];
+  const isRTL = language === 'arabic' || language === 'urdu';
   
-  const languageCode = 
-    language === 'bengali' ? 'bn-BD' : 
-    language === 'english' ? 'en-US' : 
-    language === 'arabic' ? 'ar-SA' :
-    'ur-PK';
+  const currentLangObj = LANGUAGES.find(l => l.id === language) || LANGUAGES[0];
+  const languageCode = currentLangObj.code;
   
   const storageKey = 
     language === 'bengali' ? 'bangla-voice-text' : 
     language === 'english' ? 'english-voice-text' : 
     language === 'arabic' ? 'arabic-voice-text' :
     'urdu-voice-text';
-  
-  const { text: recognizedText, interimText, status, startListening, stopListening, resetText: resetRecognizedText } = useSpeechRecognition(languageCode);
-  const { text, setText, clearText } = useTextStorage(storageKey);
 
-  const setLanguage = (lang: 'bengali' | 'english' | 'arabic' | 'urdu') => {
+  const { text, setText, clearText } = useTextStorage(storageKey);
+  
+  const handleFinalResult = useCallback((newText: string) => {
+    if (!isMounted) return;
+    
+    let processedSegment = newText;
+    
+    if (language === 'bengali') {
+      processedSegment = processedSegment.replace(/কমা/g, ',');
+      processedSegment = processedSegment.replace(/দাড়ি/g, '।');
+      processedSegment = processedSegment.replace(/প্রশ্নবোধক/g, '?');
+      processedSegment = processedSegment.replace(/আশ্চর্য বোধক/g, '!');
+    } else if (language === 'english') {
+      processedSegment = processedSegment.replace(/comma/gi, ',');
+      processedSegment = processedSegment.replace(/period/gi, '.');
+      processedSegment = processedSegment.replace(/question mark/gi, '?');
+      processedSegment = processedSegment.replace(/exclamation mark/gi, '!');
+    } else if (language === 'arabic') {
+      processedSegment = processedSegment.replace(/فاصلة/g, '،');
+      processedSegment = processedSegment.replace(/نقطة/g, '.');
+      processedSegment = processedSegment.replace(/علامة استفهام/g, '؟');
+      processedSegment = processedSegment.replace(/علامة تعجب/g, '!');
+    } else if (language === 'urdu') {
+      processedSegment = processedSegment.replace(/کوما/g, '،');
+      processedSegment = processedSegment.replace(/مقدস/g, '۔');
+      processedSegment = processedSegment.replace(/سوالیہ نشان/g, '؟');
+      processedSegment = processedSegment.replace(/تعجب/g, '!');
+    }
+
+    setText((prev: string) => {
+      const combined = prev + (prev ? ' ' : '') + processedSegment;
+      // Clean up spaces before punctuation
+      return combined.replace(/\s+([,।?!.،۔])/g, '$1');
+    });
+  }, [isMounted, language, setText]);
+
+  const { interimText, status, startListening, stopListening } = useSpeechRecognition(languageCode, handleFinalResult);
+
+  const setLanguage = (lang: Language) => {
     setInternalLanguage(lang);
     onLanguageChange?.(lang);
   };
@@ -44,201 +86,86 @@ export function VoiceTyper({ language: externalLanguage, onLanguageChange }: Voi
     setIsMounted(true);
   }, []);
 
-  // Clear text when language changes
   useEffect(() => {
     if (isMounted) {
       if (status === 'listening') {
         stopListening();
       }
       clearText();
-      resetRecognizedText();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
+  }, [language, isMounted]);
 
-  // Sync recognized text with storage and handle voice commands for punctuation
-  useEffect(() => {
-    if (recognizedText && isMounted) {
-      let processedText = recognizedText;
-      
-      if (language === 'bengali') {
-        // Bengali voice commands for punctuation
-        processedText = processedText.replace(/কমা/g, ',');
-        processedText = processedText.replace(/দাড়ি/g, '।');
-        processedText = processedText.replace(/প্রশ্নবোধক/g, '?');
-        processedText = processedText.replace(/আশ্চর্য বোধক/g, '!');
-        // Remove space before punctuation
-        processedText = processedText.replace(/\s+([,।?!])/g, '$1');
-      } else if (language === 'english') {
-        // English voice commands for punctuation
-        processedText = processedText.replace(/comma/gi, ',');
-        processedText = processedText.replace(/period/gi, '.');
-        processedText = processedText.replace(/question mark/gi, '?');
-        processedText = processedText.replace(/exclamation mark/gi, '!');
-        // Remove space before punctuation
-        processedText = processedText.replace(/\s+([,.?!])/g, '$1');
-      } else if (language === 'arabic') {
-        // Arabic voice commands for punctuation
-        processedText = processedText.replace(/فاصلة/g, '،');
-        processedText = processedText.replace(/نقطة/g, '.');
-        processedText = processedText.replace(/علامة استفهام/g, '؟');
-        processedText = processedText.replace(/علامة تعجب/g, '!');
-        // Remove space before punctuation
-        processedText = processedText.replace(/\s+([،.؟!])/g, '$1');
-      } else if (language === 'urdu') {
-        // Urdu voice commands for punctuation
-        processedText = processedText.replace(/کوما/g, '،');
-        processedText = processedText.replace(/مقدس/g, '۔');
-        processedText = processedText.replace(/سوالیہ نشان/g, '؟');
-        processedText = processedText.replace(/تعجب/g, '!');
-        // Remove space before punctuation
-        processedText = processedText.replace(/\s+([،۔؟!])/g, '$1');
-      }
-      
-      setText(processedText);
-    }
-  }, [recognizedText, isMounted, language, setText]);
-
-  if (!isMounted) {
-    return null;
-  }
+  if (!isMounted) return null;
 
   const isListening = status === 'listening';
 
-  // Handle clear - clears both storage and recognized text
   const handleClear = () => {
-    if (isListening) {
-      stopListening();
-    }
+    if (isListening) stopListening();
     clearText();
-    resetRecognizedText();
   };
 
   return (
-    <motion.div
-      className="w-full"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.15 }}
-    >
-      {/* Language Switcher */}
-      <div className="flex flex-wrap gap-2 justify-center mb-3 items-center">
-        <motion.button
-          onClick={() => {
-            setLanguage('bengali');
-            resetRecognizedText();
-          }}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 text-sm ${
-            language === 'bengali'
-              ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-lg shadow-sky-500/50'
-              : 'bg-slate-800/40 text-slate-300 border border-slate-700/30 hover:border-sky-400/50'
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          বাংলা
-        </motion.button>
-        
-        <motion.button
-          onClick={() => {
-            setLanguage('english');
-            resetRecognizedText();
-          }}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 text-sm ${
-            language === 'english'
-              ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-lg shadow-sky-500/50'
-              : 'bg-slate-800/40 text-slate-300 border border-slate-700/30 hover:border-sky-400/50'
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          English
-        </motion.button>
-
-        <motion.button
-          onClick={() => {
-            setLanguage('arabic');
-            resetRecognizedText();
-          }}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 text-sm ${
-            language === 'arabic'
-              ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-lg shadow-sky-500/50'
-              : 'bg-slate-800/40 text-slate-300 border border-slate-700/30 hover:border-sky-400/50'
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          العربية
-        </motion.button>
-
-        <motion.button
-          onClick={() => {
-            setLanguage('urdu');
-            resetRecognizedText();
-          }}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 text-sm ${
-            language === 'urdu'
-              ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-lg shadow-sky-500/50'
-              : 'bg-slate-800/40 text-slate-300 border border-slate-700/30 hover:border-sky-400/50'
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          اردو
-        </motion.button>
-
-
+    <div className="w-full h-full flex flex-col gap-3 sm:gap-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Modern Language Switcher - Premium Look */}
+      <div className="flex justify-center p-1.5 bg-white/5 rounded-2xl w-fit mx-auto border border-white/5 shadow-inner shrink-0" dir="ltr">
+        {LANGUAGES.map((lang) => (
+          <button
+            key={lang.id}
+            onClick={() => setLanguage(lang.id as Language)}
+            className={`relative px-2.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-sm font-bold transition-all duration-300 rounded-xl ${
+              language === lang.id ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {language === lang.id && (
+              <motion.div
+                layoutId="active-lang"
+                className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-xl"
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
+            <span className="relative z-10 bengali-text">{lang.label}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Main Card Container */}
-      <div className="space-y-3 flex flex-col items-center w-full">
-        {/* Status Indicator */}
-        <div className="flex justify-center">
+      <div className="flex-1 flex flex-col items-center gap-3 sm:gap-6 min-h-[450px] sm:min-h-0">
+        <div className="shrink-0">
           <StatusIndicator status={status} language={language} />
         </div>
-
-        {/* Text Display */}
-        <div className="flex justify-center w-full px-2">
+        
+        <div className="w-full flex-1 min-h-0">
           <TextDisplay text={text} interimText={interimText} onChange={setText} language={language} />
         </div>
 
-        {/* Microphone Button */}
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-3 sm:gap-6 w-full shrink-0">
           <MicButton
             isListening={isListening}
             onStart={startListening}
             onStop={stopListening}
             disabled={status === 'not-supported'}
           />
+          <ControlBar text={text} onClear={handleClear} language={language} />
         </div>
 
-        {/* Control Bar */}
-        <div className="flex justify-center w-full px-2">
-          <ControlBar text={text} onClear={handleClear} />
-        </div>
-
-        {/* Info Text */}
-        {status === 'not-supported' && (
-          <div className="flex justify-center w-full px-2">
-            <div
-              className="text-center px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm"
+        <AnimatePresence>
+          {status === 'not-supported' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="text-center p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs sm:text-sm max-w-md shrink-0"
             >
-              <p className="font-bold text-base mb-2">
-                {language === 'bengali' && 'বিরত'}
-                {language === 'english' && 'Not Supported'}
-                {language === 'arabic' && 'غير مدعوم'}
-                {language === 'urdu' && 'تعاون یافتہ نہیں'}
+              <p className="font-bold mb-1 bengali-text">
+                {t.ui.notSupportedTitle}
               </p>
-              <p className={language === 'arabic' || language === 'urdu' ? 'text-right' : ''}>
-                {language === 'bengali' && 'আপনার ব্রাউজারে ভয়েস রিকগনিশন সমর্থিত নয়। অনুগ্রহ করে Chrome, Edge বা Safari ব্যবহার করুন।'}
-                {language === 'english' && 'Speech Recognition is not supported in your browser. Please use Chrome, Edge, or Safari.'}
-                {language === 'arabic' && 'التعرف على الكلام غير مدعوم في متصفحك. يرجى استخدام Chrome أو Edge أو Safari.'}
-                {language === 'urdu' && 'آپ کے براؤزر میں تقریر کی شناخت تعاون یافتہ نہیں ہے۔ براہ کرم Chrome، Edge یا Safari استعمال کریں۔'}
+              <p className="opacity-80 bengali-text">
+                {t.ui.notSupportedDesc}
               </p>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 }

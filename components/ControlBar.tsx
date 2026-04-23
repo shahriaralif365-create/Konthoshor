@@ -1,169 +1,136 @@
 'use client';
 
-import { useRef } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Download, FileText, Trash2 } from 'lucide-react';
+import { Copy, Check, Trash2, Download, FileText } from 'lucide-react';
 import { Document, Packer, Paragraph } from 'docx';
+import { translations } from '@/lib/translations';
 
 interface ControlBarProps {
   text: string;
   onClear: () => void;
+  language?: 'bengali' | 'english' | 'arabic' | 'urdu';
 }
 
-export function ControlBar({ text, onClear }: ControlBarProps) {
-  const copyButtonRef = useRef<HTMLButtonElement>(null);
+export function ControlBar({ text, onClear, language = 'bengali' }: ControlBarProps) {
+  const [copied, setCopied] = useState(false);
+  const t = translations[language].ui;
+  const isRTL = language === 'arabic' || language === 'urdu';
 
-  const characterCount = text.length;
-  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const charCount = text.length;
 
   const handleCopy = async () => {
     if (!text) return;
-    
     try {
       await navigator.clipboard.writeText(text);
-    } catch (error) {
-      console.error('Failed to copy:', error);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = (type: 'txt' | 'docx') => {
     if (!text) return;
     
-    try {
-      const element = document.createElement('a');
-      const file = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      element.href = URL.createObjectURL(file);
-      element.download = `bangla-voice-${new Date().toISOString().split('T')[0]}.txt`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-      URL.revokeObjectURL(element.href);
-    } catch (error) {
-      console.error('Failed to download:', error);
-    }
-  };
-
-  const handleDownloadWord = async () => {
-    if (!text) return;
-    
-    try {
+    if (type === 'txt') {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `konthoshor-${new Date().getTime()}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
       const doc = new Document({
-        sections: [
-          {
-            children: text.split('\n').map(
-              (paragraph) =>
-                new Paragraph({
-                  text: paragraph || ' ',
-                })
-            ),
-          },
-        ],
+        sections: [{
+          properties: {},
+          children: text.split('\n').map(line => new Paragraph({ text: line || ' ' })),
+        }],
       });
 
-      const blob = await Packer.toBlob(doc);
-      const element = document.createElement('a');
-      element.href = URL.createObjectURL(blob);
-      element.download = `bangla-voice-${new Date().toISOString().split('T')[0]}.docx`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-      URL.revokeObjectURL(element.href);
-    } catch (error) {
-      console.error('Failed to download Word document:', error);
+      Packer.toBlob(doc).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `konthoshor-${new Date().getTime()}.docx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
     }
   };
 
   return (
-    <div className="w-full max-w-2xl space-y-2">
-      {/* Statistics */}
-      <div className="flex gap-3 justify-center">
-        <motion.div
-          className="px-4 py-2 rounded-lg text-center bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-sky-400/20 hover:border-sky-400/40 transition-all backdrop-blur-sm"
-          whileHover={{ scale: 1.05 }}
-        >
-          <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Characters</p>
-          <p className="text-xl font-bold text-sky-300">{characterCount}</p>
-        </motion.div>
-        <motion.div
-          className="px-4 py-2 rounded-lg text-center bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-sky-400/20 hover:border-sky-400/40 transition-all backdrop-blur-sm"
-          whileHover={{ scale: 1.05 }}
-        >
-          <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Words</p>
-          <p className="text-xl font-bold text-sky-300">{wordCount}</p>
-        </motion.div>
-      </div>
+    <div className={`w-full flex flex-col gap-4 ${isRTL ? 'items-end' : 'items-start'}`}>
+      <div className={`w-full flex flex-col sm:flex-row items-center justify-between gap-4 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+        {/* Statistics Cards - Restored for Premium Look */}
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex-1 sm:flex-none glass-card px-2 sm:px-4 py-1.5 sm:py-2 border border-white/5 flex flex-col items-center sm:items-start min-w-[60px] sm:min-w-[80px]">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5 bengali-text">{t.words}</span>
+            <span className="text-lg sm:text-xl font-bold text-white tabular-nums">{wordCount}</span>
+          </div>
+          <div className="flex-1 sm:flex-none glass-card px-2 sm:px-4 py-1.5 sm:py-2 border border-white/5 flex flex-col items-center sm:items-start min-w-[60px] sm:min-w-[80px]">
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5 bengali-text">{t.chars}</span>
+            <span className="text-lg sm:text-xl font-bold text-white tabular-nums">{charCount}</span>
+          </div>
+        </div>
 
-      {/* Control buttons */}
-      <div className="rounded-xl p-3 bg-gradient-to-r from-slate-800/30 to-slate-900/30 border border-sky-400/20 backdrop-blur-sm">
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          {/* Copy button */}
+        {/* Action Buttons - All Options Restored */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <motion.button
-            ref={copyButtonRef}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleCopy}
             disabled={!text}
-            className={`px-3 py-1.5 rounded-lg transition-all text-sm font-medium flex items-center gap-2 ${
-              text
-                ? 'bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 hover:text-sky-200 border border-sky-400/30 cursor-pointer'
-                : 'bg-slate-800/20 text-slate-600 cursor-not-allowed opacity-50'
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl transition-all font-bold text-xs uppercase tracking-wider ${
+              copied 
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                : 'bg-white/5 hover:bg-white/10 text-white border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed'
             }`}
-            whileHover={text ? { scale: 1.05 } : undefined}
-            whileTap={text ? { scale: 0.95 } : undefined}
-            title="Copy to clipboard"
           >
-            <Copy size={16} />
-            Copy
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+            <span className="bengali-text">{copied ? t.copied : t.copy}</span>
           </motion.button>
 
-          {/* Download button */}
-          <motion.button
-            onClick={handleDownload}
-            disabled={!text}
-            className={`px-3 py-1.5 rounded-lg transition-all text-sm font-medium flex items-center gap-2 ${
-              text
-                ? 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 hover:text-cyan-200 border border-cyan-400/30 cursor-pointer'
-                : 'bg-slate-800/20 text-slate-600 cursor-not-allowed opacity-50'
-            }`}
-            whileHover={text ? { scale: 1.05 } : undefined}
-            whileTap={text ? { scale: 0.95 } : undefined}
-            title="Download as .txt"
-          >
-            <Download size={16} />
-            TXT
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleDownload('txt')}
+              disabled={!text}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center transition-all disabled:opacity-30"
+              title="Download TXT"
+            >
+              <Download size={18} />
+            </motion.button>
 
-          {/* Download as Word button */}
-          <motion.button
-            onClick={handleDownloadWord}
-            disabled={!text}
-            className={`px-3 py-1.5 rounded-lg transition-all text-sm font-medium flex items-center gap-2 ${
-              text
-                ? 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 hover:text-cyan-200 border border-cyan-400/30 cursor-pointer'
-                : 'bg-slate-800/20 text-slate-600 cursor-not-allowed opacity-50'
-            }`}
-            whileHover={text ? { scale: 1.05 } : undefined}
-            whileTap={text ? { scale: 0.95 } : undefined}
-            title="Download as .docx"
-          >
-            <FileText size={16} />
-            DOCX
-          </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleDownload('docx')}
+              disabled={!text}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center transition-all disabled:opacity-30"
+              title="Download DOCX"
+            >
+              <FileText size={18} />
+            </motion.button>
 
-          {/* Clear button */}
-          <motion.button
-            onClick={onClear}
-            disabled={!text}
-            className={`px-3 py-1.5 rounded-lg transition-all text-sm font-medium flex items-center gap-2 ${
-              text
-                ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-400/30 cursor-pointer'
-                : 'bg-slate-800/20 text-slate-600 cursor-not-allowed opacity-50'
-            }`}
-            whileHover={text ? { scale: 1.05 } : undefined}
-            whileTap={text ? { scale: 0.95 } : undefined}
-            title="Clear all text"
-          >
-            <Trash2 size={16} />
-            Clear
-          </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onClear}
+              disabled={!text}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-red-500/5 hover:bg-red-500/10 text-red-400 border border-red-500/10 flex items-center justify-center transition-all disabled:opacity-30"
+              title="Clear Text"
+            >
+              <Trash2 size={18} />
+            </motion.button>
+          </div>
         </div>
       </div>
     </div>

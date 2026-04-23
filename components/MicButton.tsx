@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Square } from 'lucide-react';
 
 interface MicButtonProps {
@@ -11,67 +11,78 @@ interface MicButtonProps {
 }
 
 export function MicButton({ isListening, onStart, onStop, disabled = false }: MicButtonProps) {
-  const handleClick = () => {
-    if (isListening) {
-      onStop();
-    } else {
-      onStart();
-    }
-  };
-
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative">
-        {/* Ripple animations */}
-        {isListening &&
-          [0, 1, 2].map((index) => (
-            <motion.div
-              key={index}
-              className="absolute inset-0 rounded-full border-2 border-sky-400/50"
-              animate={{
-                scale: [1, 2, 3],
-                opacity: [0.8, 0.4, 0],
-              }}
-              transition={{
-                duration: 1.5,
-                delay: index * 0.3,
-                repeat: Infinity,
-              }}
-            />
-          ))}
-
-        {/* Main button */}
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative group">
+        {/* Animated Rings - Subtle */}
+        <AnimatePresence>
+          {isListening && (
+            <>
+              <motion.div
+                initial={{ scale: 1, opacity: 0.5 }}
+                animate={{ scale: 2, opacity: 0 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                className="absolute inset-0 rounded-full bg-red-500/30"
+              />
+              <motion.div
+                initial={{ scale: 1, opacity: 0.4 }}
+                animate={{ scale: 2.5, opacity: 0 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.6 }}
+                className="absolute inset-0 rounded-full bg-red-500/20"
+              />
+              <motion.div
+                initial={{ scale: 1, opacity: 0.3 }}
+                animate={{ scale: 3, opacity: 0 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 1.2 }}
+                className="absolute inset-0 rounded-full bg-red-500/10"
+              />
+            </>
+          )}
+        </AnimatePresence>
+ 
+        {/* Glow Effect */}
+        <div className={`absolute -inset-3 rounded-full blur-xl transition-all duration-500 opacity-0 group-hover:opacity-100 ${
+          isListening ? 'bg-red-500/10 opacity-30' : 'bg-primary/10'
+        }`} />
+ 
+        {/* Main Button - More Compact */}
         <motion.button
-          onClick={handleClick}
+          onClick={isListening ? onStop : onStart}
           disabled={disabled}
-          className={`relative w-16 h-16 rounded-full font-semibold text-white flex items-center justify-center transition-all duration-300 shadow-xl ${
-            isListening
-              ? 'bg-gradient-to-br from-red-500 to-red-600 shadow-red-500/50'
-              : 'bg-gradient-to-br from-sky-500 to-cyan-500 hover:shadow-lg hover:shadow-sky-500/50'
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          animate={isListening ? {
+            scale: [1, 1.05, 1],
+            boxShadow: [
+              "0 0 0 0 rgba(239, 68, 68, 0)",
+              "0 0 0 20px rgba(239, 68, 68, 0.1)",
+              "0 0 0 0 rgba(239, 68, 68, 0)"
+            ]
+          } : {}}
+          transition={isListening ? {
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          } : {}}
+          className={`relative z-10 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-500 shadow-xl ${
+            isListening 
+              ? 'bg-red-500 text-white' 
+              : 'bg-sky-400 shadow-primary/10 text-slate-900 hover:bg-primary hover:text-white'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-          whileHover={!disabled ? { scale: 1.08 } : undefined}
-          whileTap={!disabled ? { scale: 0.92 } : undefined}
         >
           {isListening ? (
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 0.5, repeat: Infinity }}
-            >
-              <Square size={24} fill="currentColor" />
-            </motion.div>
+            <Square size={20} fill="currentColor" />
           ) : (
             <Mic size={24} />
           )}
         </motion.button>
       </div>
-
-      {/* Status text */}
-      <motion.p
-        className="text-sm font-semibold text-slate-300"
-        animate={{ opacity: isListening ? 1 : 0.8 }}
-      >
-        {isListening ? 'Tap to stop' : 'Tap to start'}
-      </motion.p>
+ 
+      <div className="text-center">
+        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isListening ? 'text-red-400' : 'text-slate-500'}`}>
+          {isListening ? 'Recording' : 'Click to Speak'}
+        </span>
+      </div>
     </div>
   );
 }

@@ -10,9 +10,15 @@ import { translations, Language } from '@/lib/translations';
 export default function Home() {
   const [language, setLanguage] = useState<Language>('bengali');
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isSupported, setIsSupported] = useState(true);
 
   const t = translations[language];
   const isRTL = language === 'arabic' || language === 'urdu';
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setIsSupported(!!SpeechRecognition);
+  }, []);
 
   // Dynamic SEO Update
   useEffect(() => {
@@ -42,6 +48,13 @@ export default function Home() {
 
       {/* Navigation - Fixed Height */}
       <nav className="shrink-0 w-full z-50 glass-morphism border-b border-white/5 backdrop-blur-md">
+        {!isSupported && (
+          <div className="bg-red-500/10 border-b border-red-500/20 py-1.5 px-4 text-center">
+            <p className="text-[10px] sm:text-xs text-red-400 font-medium bengali-text">
+              {t.ui.notSupportedDesc}
+            </p>
+          </div>
+        )}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative group">

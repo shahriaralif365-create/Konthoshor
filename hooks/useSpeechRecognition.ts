@@ -20,6 +20,8 @@ export function useSpeechRecognition(
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
+  const shouldBeListeningRef = useRef(false);
+  const lastProcessedIndexRef = useRef(-1);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -37,41 +39,31 @@ export function useSpeechRecognition(
     recognition.interimResults = true;
     recognition.lang = language;
 
-    let lastFinalTranscript = '';
 
     recognition.onstart = () => {
       isListeningRef.current = true;
-      lastFinalTranscript = '';
+      lastProcessedIndexRef.current = -1;
       setStatus('listening');
       setError(null);
     };
 
     recognition.onresult = (event: any) => {
       let interimTranscript = '';
-      let currentFinalTranscript = '';
-
-      for (let i = 0; i < event.results.length; i++) {
+      
+      // Using resultIndex is generally more reliable across different browsers
+      // especially on mobile, as it tells us where the new results start.
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
         const transcript = event.results[i][0].transcript;
-
+        
         if (event.results[i].isFinal) {
-          currentFinalTranscript += transcript;
+          // Only process this index if we haven't already processed it as final
+          if (i > lastProcessedIndexRef.current) {
+            onFinalResult(transcript);
+            lastProcessedIndexRef.current = i;
+          }
         } else {
           interimTranscript += transcript;
         }
-      }
-      
-      if (currentFinalTranscript && currentFinalTranscript !== lastFinalTranscript) {
-        let newText = currentFinalTranscript;
-        
-        // Check if the new transcript builds upon the old one (common in continuous mode)
-        if (currentFinalTranscript.toLowerCase().startsWith(lastFinalTranscript.toLowerCase())) {
-          newText = currentFinalTranscript.substring(lastFinalTranscript.length);
-        }
-        
-        if (newText.trim()) {
-          onFinalResult(newText);
-        }
-        lastFinalTranscript = currentFinalTranscript;
       }
       
       setInterimText(interimTranscript);
@@ -84,6 +76,18 @@ export function useSpeechRecognition(
 
     recognition.onend = () => {
       isListeningRef.current = false;
+      
+      // If it stopped but we intended it to be listening (common on mobile), restart it
+      if (shouldBeListeningRef.current) {
+        try {
+          recognition.start();
+          isListeningRef.current = true;
+          return; // Don't reset state if we're restarting
+        } catch (e) {
+          console.error('Restart failed:', e);
+        }
+      }
+      
       setInterimText('');
       setStatus('ready');
     };
@@ -100,6 +104,7 @@ export function useSpeechRecognition(
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListeningRef.current) {
       try {
+        shouldBeListeningRef.current = true;
         recognitionRef.current.start();
       } catch (e) {
         console.error('Start listening error:', e);
@@ -108,6 +113,7 @@ export function useSpeechRecognition(
   }, []);
 
   const stopListening = useCallback(() => {
+    shouldBeListeningRef.current = false;
     if (recognitionRef.current && isListeningRef.current) {
       recognitionRef.current.stop();
     }

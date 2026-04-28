@@ -31,6 +31,8 @@ export function VoiceTyper({
   const [isMounted, setIsMounted] = useState(false);
   const [internalLanguage, setInternalLanguage] = useState<Language>('bengali');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastProcessedTextRef = useRef('');
+  const lastProcessedTimeRef = useRef(0);
 
   const language = externalLanguage || internalLanguage;
   const t = translations[language];
@@ -49,6 +51,15 @@ export function VoiceTyper({
 
   const handleFinalResult = useCallback((newText: string) => {
     if (!isMounted) return;
+
+    // Secondary de-duplication for mobile browsers that might emit the same result twice
+    const now = Date.now();
+    const trimmedNew = newText.trim();
+    if (trimmedNew === lastProcessedTextRef.current && (now - lastProcessedTimeRef.current) < 800) {
+      return;
+    }
+    lastProcessedTextRef.current = trimmedNew;
+    lastProcessedTimeRef.current = now;
 
     let processedSegment = newText;
 

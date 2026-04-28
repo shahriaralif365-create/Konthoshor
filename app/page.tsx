@@ -3,22 +3,17 @@
 import { useState, useEffect } from 'react';
 import { VoiceTyper } from '@/components/VoiceTyper';
 import { PunctuationGuide } from '@/components/PunctuationGuide';
-import { Mic, HelpCircle, Shield, Zap, Globe } from 'lucide-react';
+import { Mic, HelpCircle, Shield, Zap, Globe, Type } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { translations, Language } from '@/lib/translations';
 
 export default function Home() {
   const [language, setLanguage] = useState<Language>('bengali');
   const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [isSupported, setIsSupported] = useState(true);
+  const [isPunctuationEnabled, setIsPunctuationEnabled] = useState(false);
 
   const t = translations[language];
   const isRTL = language === 'arabic' || language === 'urdu';
-
-  useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    setIsSupported(!!SpeechRecognition);
-  }, []);
 
   // Dynamic SEO Update
   useEffect(() => {
@@ -37,7 +32,7 @@ export default function Home() {
 
   return (
     <main 
-      className="relative min-h-screen md:h-screen flex flex-col items-center selection:bg-primary/30 md:overflow-hidden overflow-y-auto overflow-x-hidden" 
+      className="relative min-h-[100dvh] w-full flex flex-col items-center selection:bg-primary/30 overflow-x-hidden bg-slate-950" 
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Dynamic Background */}
@@ -48,13 +43,6 @@ export default function Home() {
 
       {/* Navigation - Fixed Height */}
       <nav className="shrink-0 w-full z-50 glass-morphism border-b border-white/5 backdrop-blur-md">
-        {!isSupported && (
-          <div className="bg-red-500/10 border-b border-red-500/20 py-1.5 px-4 text-center">
-            <p className="text-[10px] sm:text-xs text-red-400 font-medium bengali-text">
-              {t.ui.notSupportedDesc}
-            </p>
-          </div>
-        )}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative group">
@@ -73,10 +61,26 @@ export default function Home() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setIsGuideOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-[10px] sm:text-xs font-medium"
+              onClick={() => setIsPunctuationEnabled(!isPunctuationEnabled)}
+              className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full border transition-all text-[10px] sm:text-xs font-medium ${
+                isPunctuationEnabled 
+                  ? 'bg-primary/20 border-primary/50 text-primary shadow-[0_0_15px_rgba(var(--primary),0.2)]' 
+                  : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+              }`}
+              title={isPunctuationEnabled ? 'Disable Punctuation' : 'Enable Punctuation'}
             >
-              <HelpCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <Type className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isPunctuationEnabled ? 'animate-pulse' : ''}`} />
+              <span className="bengali-text">{t.nav.punctuation}</span>
+              <div className={`w-2 h-2 rounded-full ${isPunctuationEnabled ? 'bg-primary' : 'bg-slate-600'}`} />
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsGuideOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-[10px] sm:text-xs font-medium text-slate-300"
+            >
+              <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="bengali-text">{t.nav.guide}</span>
             </motion.button>
             <div className="h-4 sm:h-5 w-[1px] bg-white/10" />
@@ -92,35 +96,36 @@ export default function Home() {
       </nav>
 
       {/* Hero Section & Interface - Flexible Height Container */}
-      <section className="relative z-10 w-full max-w-5xl px-4 flex-1 flex flex-col items-center justify-center min-h-0 py-4 sm:py-4 lg:py-6">
+      <section className="relative z-10 w-full max-w-5xl px-4 flex-1 flex flex-col items-center justify-start min-h-0 pt-2 sm:pt-4 pb-2">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-3 sm:mb-6 shrink-0"
+          className="text-center mb-2 sm:mb-4 shrink-0 w-full"
         >
-          <h2 className="text-xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-1 sm:mb-2 tracking-tight bengali-text leading-tight px-2">
+          <h2 className="text-[clamp(1.25rem,4vw,2.5rem)] font-extrabold text-white mb-1 sm:mb-2 tracking-tight bengali-text leading-tight px-2">
             <span className="bg-gradient-to-r from-white via-white/90 to-slate-400 bg-clip-text text-transparent">
               {t.hero.title}
             </span>
           </h2>
-          <p className="text-xs sm:text-sm lg:text-base text-slate-400 max-w-xl mx-auto bengali-text leading-relaxed px-4 opacity-80">
+          <p className="text-[clamp(0.75rem,1.5vw,1rem)] text-slate-400 max-w-2xl mx-auto bengali-text leading-relaxed px-4 opacity-70 hidden xs:block">
             {t.hero.subtitle}
           </p>
         </motion.div>
 
         {/* Main Interface Container - Grows and fills vertical space */}
-        <div className="w-full relative max-w-4xl flex-1 flex flex-col min-h-0">
+        <div className="w-full relative max-w-4xl flex-1 flex flex-col min-h-0 mb-2">
           <div className="absolute -inset-2 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-[1.5rem] sm:rounded-[2rem] blur-2xl opacity-40" />
-          <div className="relative flex-1 flex flex-col glass-morphism rounded-[1.25rem] sm:rounded-[1.5rem] border border-white/10 p-2 sm:p-4 shadow-2xl min-h-0">
+          <div className="relative flex-1 flex flex-col glass-morphism rounded-[1.25rem] sm:rounded-[1.5rem] border border-white/10 p-1 sm:p-2 shadow-2xl min-h-0">
             <VoiceTyper 
               language={language} 
               onLanguageChange={setLanguage}
+              isPunctuationEnabled={isPunctuationEnabled}
             />
           </div>
         </div>
 
-        {/* Feature Highlights - Compact and Shrinkable */}
-        <div className="flex justify-center gap-4 sm:gap-12 mt-4 sm:mt-6 w-full px-4 shrink-0 overflow-x-auto custom-scrollbar-hide py-1">
+        {/* Feature Highlights - Flexible Wrapping */}
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 lg:gap-12 mt-6 w-full px-2 py-2">
           {[
             { icon: Shield, ...t.features.secure },
             { icon: Zap, ...t.features.fast },

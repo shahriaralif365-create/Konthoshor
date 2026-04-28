@@ -12,8 +12,8 @@ interface MicButtonProps {
 
 export function MicButton({ isListening, onStart, onStop, disabled = false }: MicButtonProps) {
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative group">
+    <div className="flex flex-col items-center justify-center">
+      <div className="relative group flex items-center justify-center">
         {/* Animated Rings - Subtle */}
         <AnimatePresence>
           {isListening && (
@@ -64,7 +64,7 @@ export function MicButton({ isListening, onStart, onStop, disabled = false }: Mi
             repeat: Infinity,
             ease: "easeInOut"
           } : {}}
-          className={`relative z-10 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-500 shadow-xl ${
+          className={`relative z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500 shadow-xl ${
             isListening 
               ? 'bg-red-500 text-white' 
               : 'bg-sky-400 shadow-primary/10 text-slate-900 hover:bg-primary hover:text-white'
@@ -76,12 +76,6 @@ export function MicButton({ isListening, onStart, onStop, disabled = false }: Mi
             <Mic size={24} />
           )}
         </motion.button>
-      </div>
- 
-      <div className="text-center">
-        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isListening ? 'text-red-400' : 'text-slate-500'}`}>
-          {isListening ? 'Recording' : 'Click to Speak'}
-        </span>
       </div>
     </div>
   );

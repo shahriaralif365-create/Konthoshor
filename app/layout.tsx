@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Konthoshor | Advanced Bangla Voice Typing & Speech to Text',
     description: 'The ultimate tool for converting Bangla speech to text instantly. Accurate, fast, and free for writers and students.',
-    url: 'https://konthoshor.com',
+    url: 'https://konthoshor.netlify.app/',
     siteName: 'Konthoshor',
     locale: 'bn_BD',
     type: 'website',

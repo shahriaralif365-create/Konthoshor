@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, X, Info } from 'lucide-react';
+import { ChevronDown, X, Info, Type } from 'lucide-react';
 
 import { translations, Language } from '@/lib/translations';
 
@@ -26,20 +26,20 @@ export function PunctuationGuide({ language, onClose }: PunctuationGuideProps) {
       title: 'বিরাম চিহ্নের নির্দেশিকা',
       subtitle: 'টাইপ করার সময় এই শব্দগুলো ব্যবহার করুন',
       items: [
-        { command: 'কমা', result: ',', description: 'বাক্যে কমা ব্যবহারের জন্য "কমা" বলুন।' },
-        { command: 'দাড়ি', result: '।', description: 'বাক্য শেষ করতে "দাড়ি" বলুন।' },
-        { command: 'প্রশ্নবোধক', result: '?', description: 'প্রশ্ন করতে "প্রশ্নবোধক" বলুন।' },
-        { command: 'আশ্চর্য বোধক', result: '!', description: 'আবেগ প্রকাশে "আশ্চর্য বোধক" বলুন।' },
+        { command: 'কমা দাও / কমা', result: ',', description: 'বাক্যে কমা ব্যবহারের জন্য "কমা দাও" বা "কমা" বলুন।' },
+        { command: 'দাঁড়ি দাও / দাঁড়ি', result: '।', description: 'বাক্য শেষ করতে "দাঁড়ি দাও" বা "দাঁড়ি" বলুন।' },
+        { command: 'প্রশ্নবোধক চিহ্ন দাও', result: '?', description: 'প্রশ্ন করতে "প্রশ্নবোধক চিহ্ন দাও" বা "প্রশ্নবোধক চিহ্ন" বলুন।' },
+        { command: 'বিস্ময়বোধک চিহ্ন দাও', result: '!', description: 'আবেগ প্রকাশে "বিস্ময়বোধক চিহ্ন দাও" বা "বিস্ময়বোধক চিহ্ন" বলুন।' },
       ]
     },
     english: {
       title: 'Punctuation Guide',
       subtitle: 'Use these voice commands while speaking',
       items: [
-        { command: 'comma', result: ',', description: 'Say "comma" to insert a comma.' },
-        { command: 'period', result: '.', description: 'Say "period" to insert a full stop.' },
-        { command: 'question mark', result: '?', description: 'Say "question mark" for questions.' },
-        { command: 'exclamation mark', result: '!', description: 'Say "exclamation mark" for emphasis.' },
+        { command: 'give comma / comma', result: ',', description: 'Say "give comma" or "comma" to insert a comma.' },
+        { command: 'give period / period', result: '.', description: 'Say "give period" or "period" to insert a full stop.' },
+        { command: 'give question mark', result: '?', description: 'Say "give question mark" for questions.' },
+        { command: 'give exclamation mark', result: '!', description: 'Say "give exclamation mark" for emphasis.' },
       ]
     },
     arabic: {
@@ -106,6 +106,18 @@ export function PunctuationGuide({ language, onClose }: PunctuationGuideProps) {
         </div>
 
         <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+          {/* Punctuation Toggle Notice */}
+          <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 flex items-start gap-3 mb-4">
+            <div className="mt-0.5 text-primary shrink-0">
+              <Type size={16} />
+            </div>
+            <p className="text-[11px] sm:text-xs text-slate-300 bengali-text leading-relaxed">
+              {language === 'bengali' 
+                ? 'বিরাম চিহ্ন ব্যবহারের জন্য উপরের "বিরামচিহ্ন" বাটনটি চালু (On) করুন। এটি বন্ধ থাকলে কথাগুলো সরাসরি টেক্সট হিসেবে যোগ হবে।' 
+                : 'To use punctuation marks, please enable the "Punctuation" toggle in the header. If disabled, commands will appear as plain text.'}
+            </p>
+          </div>
+
           {currentGuide.items.map((item, i) => (
             <div
               key={i}

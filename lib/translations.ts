@@ -3,11 +3,12 @@ export const translations = {
     nav: {
       brand: 'কণ্ঠস্বর',
       guide: 'নির্দেশিকা',
+      punctuation: 'বিরামচিহ্ন',
       status: 'অনলাইন',
     },
     hero: {
       title: 'আপনার কণ্ঠস্বর দিয়ে লিখুন',
-      subtitle: 'দ্রুত এবং নির্ভুল বাংলা ভয়েস টাইপিং টুল। সরাসরি ব্রাউজারে কথা বলুন আর টেক্সট পান নিমিষেই।',
+      subtitle: 'দ্রুত এবং নির্ভুল বাংলা ভয়েস টাইপিং টুল। কথা বলুন আর টেক্সট পান নিমিষেই।',
     },
     features: {
       secure: { title: 'নিরাপদ', desc: 'প্রাইভেসি ফার্স্ট' },
@@ -47,6 +48,7 @@ export const translations = {
     nav: {
       brand: 'Konthoshor',
       guide: 'Guide',
+      punctuation: 'Punctuation',
       status: 'Online',
     },
     hero: {
@@ -91,6 +93,7 @@ export const translations = {
     nav: {
       brand: 'كونثوشور',
       guide: 'دليل',
+      punctuation: 'ترقيم',
       status: 'متصل',
     },
     hero: {
@@ -135,6 +138,7 @@ export const translations = {
     nav: {
       brand: 'کنتھوشور',
       guide: 'گائیڈ',
+      punctuation: 'رموزِ اوقاف',
       status: 'آن لائن',
     },
     hero: {

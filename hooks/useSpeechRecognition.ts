@@ -37,23 +37,41 @@ export function useSpeechRecognition(
     recognition.interimResults = true;
     recognition.lang = language;
 
+    let lastFinalTranscript = '';
+
     recognition.onstart = () => {
       isListeningRef.current = true;
+      lastFinalTranscript = '';
       setStatus('listening');
       setError(null);
     };
 
     recognition.onresult = (event: any) => {
       let interimTranscript = '';
+      let currentFinalTranscript = '';
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      for (let i = 0; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
 
         if (event.results[i].isFinal) {
-          onFinalResult(transcript);
+          currentFinalTranscript += transcript;
         } else {
           interimTranscript += transcript;
         }
+      }
+      
+      if (currentFinalTranscript && currentFinalTranscript !== lastFinalTranscript) {
+        let newText = currentFinalTranscript;
+        
+        // Check if the new transcript builds upon the old one (common in continuous mode)
+        if (currentFinalTranscript.toLowerCase().startsWith(lastFinalTranscript.toLowerCase())) {
+          newText = currentFinalTranscript.substring(lastFinalTranscript.length);
+        }
+        
+        if (newText.trim()) {
+          onFinalResult(newText);
+        }
+        lastFinalTranscript = currentFinalTranscript;
       }
       
       setInterimText(interimTranscript);

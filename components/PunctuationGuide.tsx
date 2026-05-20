@@ -71,23 +71,23 @@ export function PunctuationGuide({ language, onClose }: PunctuationGuideProps) {
   const isRTL = translationKey === 'arabic' || translationKey === 'urdu';
 
   return (
-    <>
+    <div className="fixed inset-0 flex items-center justify-center p-4 z-[100]">
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100]"
+        className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
       />
 
       {/* Modal */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, x: '-50%', y: '-50%' }}
-        animate={{ opacity: 1, scale: 1, x: '-50%', y: '-50%' }}
-        exit={{ opacity: 0, scale: 0.95, x: '-50%', y: '-50%' }}
-        className="fixed top-1/2 left-1/2 w-full max-w-lg glass-morphism rounded-3xl border border-white/10 z-[101] overflow-hidden"
-        style={{ transform: 'translate(-50%, -50%)' }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="w-full max-w-lg glass-morphism rounded-3xl border border-white/10 z-[101] overflow-hidden relative shadow-2xl"
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -149,6 +149,7 @@ export function PunctuationGuide({ language, onClose }: PunctuationGuideProps) {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.18, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
                     <p className={`p-4 pt-0 text-sm text-slate-400 leading-relaxed bengali-text ${isRTL ? 'text-right' : 'text-left'
@@ -168,6 +169,6 @@ export function PunctuationGuide({ language, onClose }: PunctuationGuideProps) {
           </p>
         </div>
       </motion.div>
-    </>
+    </div>
   );
 }

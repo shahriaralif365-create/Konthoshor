@@ -93,7 +93,7 @@ export const translations = {
   },
   arabic: {
     nav: {
-      brand: 'كونثوشور',
+      brand: 'Konthoshor',
       guide: 'دليل',
       punctuation: 'ترقيم',
       status: 'متصل',
@@ -103,13 +103,13 @@ export const translations = {
       subtitle: 'أداة كتابة صوتية سريعة ودقيقة. تحدث مباشرة في المتصفح واحصل على النص على الفور.',
     },
     features: {
-      secure: { title: 'آمن', desc: 'الخصوصية أولاً' },
-      fast: { title: 'سريع', desc: 'الكتابة في الوقت الحقيقي' },
-      multi: { title: 'متعدد اللغات', desc: 'البنغالية، الإنجليزية، العربية' },
+      secure: { title: 'Secure', desc: 'Privacy First' },
+      fast: { title: 'Fast', desc: 'Real-time Typing' },
+      multi: { title: 'Multilingual', desc: 'Bangla, English, Arabic' },
     },
     footer: {
-      copy: '© 2026 كونثوشور - كتابة صوتية سريعة.',
-      links: ['الكتابة بالصوت', 'الكلام إلى نص', 'أداة عبر الإنترنت'],
+      copy: '© 2026 Konthoshor - Fast Voice Typing.',
+      links: ['Voice Typing', 'Speech to Text', 'Online Tool'],
     },
     seo: {
       title: 'كونثوشور | كتابة صوتية مجانية وتحويل الكلام إلى نص 2026',
@@ -117,10 +117,10 @@ export const translations = {
       keywords: 'الكتابة بالصوت, الكلام إلى نص, كونثوشور, الإملاء عبر الإنترنت',
     },
     ui: {
-      words: 'كلمات',
-      chars: 'حروف',
-      copy: 'نسخ',
-      copied: 'تم النسخ',
+      words: 'Words',
+      chars: 'Chars',
+      copy: 'Copy',
+      copied: 'Copied',
       notSupportedTitle: 'غير مدعوم',
       notSupportedDesc: 'يتعذر استخدام التعرف على الكلام في متصفحك. يرجى استخدام Chrome أو Edge.',
     },
@@ -139,7 +139,7 @@ export const translations = {
   },
   urdu: {
     nav: {
-      brand: 'کنتھوشور',
+      brand: 'Konthoshor',
       guide: 'گائیڈ',
       punctuation: 'رموزِ اوقاف',
       status: 'آن لائن',
@@ -149,13 +149,13 @@ export const translations = {
       subtitle: 'تیز اور درست آواز کی ٹائپنگ ٹول۔ براہ راست براؤزر میں بولیں اور فوری طور پر متن حاصل کریں۔',
     },
     features: {
-      secure: { title: 'محفوظ', desc: 'پرائیویسی پہلے' },
-      fast: { title: 'تیز', desc: 'ریئل ٹائم ٹائپنگ' },
-      multi: { title: 'کثیر لسانی', desc: 'بنگالی، انگریزی، عربی' },
+      secure: { title: 'Secure', desc: 'Privacy First' },
+      fast: { title: 'Fast', desc: 'Real-time Typing' },
+      multi: { title: 'Multilingual', desc: 'Bangla, English, Arabic' },
     },
     footer: {
-      copy: '© 2026 کنتھوشور - تیز آواز کی ٹائپنگ۔',
-      links: ['وائس ٹائپنگ', 'آواز سے متن', 'آن لائن ٹول'],
+      copy: '© 2026 Konthoshor - Fast Voice Typing.',
+      links: ['Voice Typing', 'Speech to Text', 'Online Tool'],
     },
     seo: {
       title: 'کنتھوشور | مفت وائس ٹائپنگ اور اسپیچ ٹو ٹیکسٹ 2026',
@@ -168,10 +168,10 @@ export const translations = {
       tip: 'واضح طور پر بولیں اور جملوں کے درمیان وقفہ کریں۔',
     },
     ui: {
-      words: 'الفاظ',
-      chars: 'حروف',
-      copy: 'نقل',
-      copied: 'نقل کر لیا',
+      words: 'Words',
+      chars: 'Chars',
+      copy: 'Copy',
+      copied: 'Copied',
       notSupportedTitle: 'تعاون یافتہ نہیں',
       notSupportedDesc: 'آپ کے براؤزر میں اسپیچ ریکگنیشن کی سہولت موجود نہیں ہے۔ براہ کرم Chrome یا Edge استعمال کریں۔',
     },
@@ -195,13 +195,13 @@ export const translations = {
       subtitle: '高速で正確な音声入力ツール。ブラウザで直接話し、瞬時にテキストを取得します。',
     },
     features: {
-      secure: { title: '安全', desc: 'プライバシー第一' },
-      fast: { title: '高速', desc: 'リアルタイム入力' },
-      multi: { title: '多言語', desc: 'バングラ語、英語、日本語' },
+      secure: { title: 'Secure', desc: 'Privacy First' },
+      fast: { title: 'Fast', desc: 'Real-time Typing' },
+      multi: { title: 'Multilingual', desc: 'Bangla, English, Arabic' },
     },
     footer: {
-      copy: '© 2026 Konthoshor - 高速音声入力。',
-      links: ['音声入力', 'スピーチ・トゥ・テキスト', 'オンラインツール'],
+      copy: '© 2026 Konthoshor - Fast Voice Typing.',
+      links: ['Voice Typing', 'Speech to Text', 'Online Tool'],
     },
     seo: {
       title: 'Konthoshor | 無料音声入力＆スピーチ・トゥ・テキスト 2026',
@@ -209,10 +209,10 @@ export const translations = {
       keywords: '音声入力, スピーチ・トゥ_テキスト, Konthoshor, オンラインディクテーション',
     },
     ui: {
-      words: '単語',
-      chars: '文字',
-      copy: 'コピー',
-      copied: 'コピーしました',
+      words: 'Words',
+      chars: 'Chars',
+      copy: 'Copy',
+      copied: 'Copied',
       notSupportedTitle: 'サポートされていません',
       notSupportedDesc: 'お使いのブラウザでは音声認識がサポートされていません。ChromeまたはEdgeを使用してください。',
     },

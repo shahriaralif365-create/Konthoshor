@@ -111,7 +111,7 @@ export function VoiceTyper({
   const language = externalLanguage || internalLanguage;
   const translationKey = (language in translations) ? (language as Language) : 'english';
   const t = translations[translationKey];
-  const isOtherLanguage = !LANGUAGES.some(l => l.id === language);
+  const isOtherLanguage = !LANGUAGES.some(l => l.id === language) && language !== 'japanese';
 
   const currentLangObj = LANGUAGES.find(l => l.id === language) || OTHER_LANGUAGES.find(l => l.id === language) || LANGUAGES[0];
   const languageCode = currentLangObj.code;
@@ -452,16 +452,31 @@ export function VoiceTyper({
                 language === lang.id ? 'text-white' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {language === lang.id && (
-                <motion.div
-                  layoutId="active-lang"
-                  className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-lg"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
+              <div
+                className={`absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-lg transition-all duration-300 ${
+                  language === lang.id ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                }`}
+              />
               <span className="relative z-10 bengali-text">{lang.label}</span>
             </button>
           ))}
+          {/* Japanese button for Desktop view only (rendered before Other Language dropdown) */}
+          <button
+            onClick={() => {
+              setLanguage('japanese');
+              setIsDropdownOpen(false);
+            }}
+            className={`relative hidden sm:flex items-center justify-center min-h-[32px] sm:min-h-[36px] px-3 sm:px-4 py-1 text-xs font-bold transition-all duration-300 rounded-lg ${
+              language === 'japanese' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <div
+              className={`absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-lg transition-all duration-300 ${
+                language === 'japanese' ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
+            />
+            <span className="relative z-10 bengali-text">日本語</span>
+          </button>
 
           {/* Dynamic 5th Button: Other Language Dropdown Trigger */}
           <div className="relative" ref={dropdownRef}>
@@ -471,13 +486,11 @@ export function VoiceTyper({
                 isOtherLanguage ? 'text-white' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {isOtherLanguage && (
-                <motion.div
-                  layoutId="active-lang"
-                  className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-lg"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
+              <div
+                className={`absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-lg transition-all duration-300 ${
+                  isOtherLanguage ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                }`}
+              />
               <span className="relative z-10 bengali-text flex items-center gap-1">
                 {isOtherLanguage 
                   ? OTHER_LANGUAGES.find(l => l.id === language)?.label 
@@ -556,7 +569,6 @@ export function VoiceTyper({
 
                 {/* Sliding Knob containing the Sun */}
                 <motion.div
-                  layout
                   className="w-[18px] h-[18px] rounded-full bg-white flex items-center justify-center shadow-md z-10"
                   animate={{
                     x: isVoicePunctuationEnabled ? 22 : 0
